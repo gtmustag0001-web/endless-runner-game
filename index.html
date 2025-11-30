@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ninja Levels Platformer</title>
+<title>🚩 जय श्री राम 🚩</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{
@@ -46,7 +46,6 @@ window.addEventListener("resize", resizeCanvas);
 const TILE_SIZE = 48;
 
 // 0 empty, 1 ground, 2 platform, 3 coin, 5 key, 6 door, 7 spikes
-// Levels: easy, medium, hard (baad me 30 tak badha sakte ho)
 const LEVELS = [
   { // Level 1 – Easy
     maxTime: 30,
@@ -65,7 +64,7 @@ const LEVELS = [
       "111111111111111111111111111111111111"
     ]
   },
-  { // Level 2 – Medium (thoda spikes/gaps)
+  { // Level 2 – Medium
     maxTime: 28,
     layout: [
       "000000000000000000000000000000000000",
@@ -82,7 +81,7 @@ const LEVELS = [
       "111111111111111111111111111111111111"
     ]
   },
-  { // Level 3 – Hard (more spikes, tight jumps)
+  { // Level 3 – Hard
     maxTime: 25,
     layout: [
       "000000000000000000000000000000000000",
@@ -119,8 +118,10 @@ let cameraX = 0;
 let score = 0;
 let lives = 3;
 
+// input flags
 let keyLeft=false,keyRight=false,keyJump=false;
 
+// keyboard (PC)
 window.addEventListener("keydown",e=>{
   if(["ArrowLeft","ArrowRight","ArrowUp","Space"," "].includes(e.code)) e.preventDefault();
   if(e.code==="ArrowLeft")  keyLeft=true;
@@ -132,9 +133,50 @@ window.addEventListener("keyup",e=>{
   if(e.code==="ArrowRight") keyRight=false;
   if(e.code==="ArrowUp"||e.code==="Space") keyJump=false;
 });
-canvas.addEventListener("touchstart",e=>{
+
+// touch + swipe (mobile)
+let touchStartX=0,touchStartY=0,touchEndX=0,touchEndY=0;
+
+canvas.addEventListener("touchstart",(e)=>{
   e.preventDefault();
-  keyJump = true;
+  const t = e.changedTouches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+});
+
+canvas.addEventListener("touchend",(e)=>{
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  touchEndX = t.clientX;
+  touchEndY = t.clientY;
+
+  const dx = touchEndX - touchStartX;
+  const dy = touchEndY - touchStartY;
+  const dist = Math.hypot(dx, dy);
+  const minSwipe = 30;
+
+  if(dist < minSwipe){
+    // tap = jump
+    keyJump = true;
+    return;
+  }
+
+  const angle = Math.atan2(-dy, dx) * 180 / Math.PI;
+
+  if(angle > 45 && angle < 135){
+    // swipe up = jump
+    keyJump = true;
+  }else if(angle < -45 && angle > -135){
+    // swipe down (future: slide)
+  }else if(angle >= 135 || angle <= -135){
+    // swipe left
+    keyLeft = true;
+    setTimeout(()=>keyLeft=false,150);
+  }else if(angle >= -45 && angle <= 45){
+    // swipe right
+    keyRight = true;
+    setTimeout(()=>keyRight=false,150);
+  }
 });
 
 // ===== LOAD LEVEL =====
@@ -149,7 +191,6 @@ function loadLevel(index){
   rows = layout.length;
   cols = layout[0].length;
   tiles = [];
-
   for(let r=0;r<rows;r++){
     tiles[r]=[];
     for(let c=0;c<cols;c++){
@@ -157,9 +198,8 @@ function loadLevel(index){
     }
   }
 
-  // spawn at left ground
-  player.x = TILE_SIZE * 2;
-  player.y = TILE_SIZE * (rows-4);
+  player.x = TILE_SIZE*2;
+  player.y = TILE_SIZE*(rows-4);
   player.vx = player.vy = 0;
   player.onGround = false;
   cameraX = 0;
@@ -167,7 +207,7 @@ function loadLevel(index){
   document.getElementById("level").textContent = index+1;
 }
 
-// ===== PHYSICS HELPERS =====
+// ===== PHYSICS =====
 const GRAVITY = 2000;
 const MAX_FALL_SPEED = 1200;
 
@@ -178,15 +218,6 @@ function rectIntersect(a,b){
          a.y + a.h > b.y;
 }
 
-function getTileAt(x,y){
-  if(x<0 || y<0) return 0;
-  const c = Math.floor(x / TILE_SIZE);
-  const r = Math.floor(y / TILE_SIZE);
-  if(r<0 || r>=rows || c<0 || c>=cols) return 0;
-  return tiles[r][c];
-}
-
-// ===== MAIN LOOP =====
 let lastTime = performance.now();
 function loop(now=performance.now()){
   const dt = (now-lastTime)/1000;
@@ -197,7 +228,7 @@ function loop(now=performance.now()){
 }
 
 function update(dt){
-  // time
+  // timer
   levelTimer += dt;
   if(levelTimer > maxTime){
     lives--;
@@ -209,6 +240,7 @@ function update(dt){
   if(keyLeft)  player.vx -= player.speed;
   if(keyRight) player.vx += player.speed;
 
+  // jump
   if(keyJump && player.onGround){
     player.vy = -player.jumpForce;
     player.onGround = false;
@@ -225,6 +257,7 @@ function update(dt){
   player.onGround = false;
   resolveCollisions("y");
 
+  // camera
   const centerX = player.x + player.w/2;
   cameraX = centerX - canvas.width/2;
   if(cameraX < 0) cameraX = 0;
@@ -235,6 +268,7 @@ function update(dt){
   handleSpikes();
   handleKeyAndDoor();
 
+  // fall death
   if(player.y > canvas.height + 400){
     lives--;
     respawn();
@@ -242,7 +276,7 @@ function update(dt){
 
   document.getElementById("score").textContent = score;
   document.getElementById("lives").textContent = lives;
-  document.getElementById("time").textContent  = Math.max(0, (maxTime - levelTimer)|0);
+  document.getElementById("time").textContent  = Math.max(0,(maxTime-levelTimer)|0);
 }
 
 function resolveCollisions(axis){
@@ -330,9 +364,8 @@ function handleKeyAndDoor(){
       if(t===6 && hasKey){ // door
         const rect = {x:x,y:y,w:TILE_SIZE,h:TILE_SIZE};
         if(rectIntersect(p,rect)){
-          // next level
           let next = currentLevel + 1;
-          if(next >= LEVELS.length) next = 0; // loop back, yaha 30 levels tak badha sakte ho
+          if(next >= LEVELS.length) next = 0;
           loadLevel(next);
           return;
         }
@@ -351,7 +384,7 @@ function respawn(){
     player.y = TILE_SIZE*(rows-4);
     player.vx = player.vy = 0;
     cameraX = 0;
-    levelTimer = 0;
+    levelTimer = 0; // same level, score safe
   }
 }
 
@@ -396,19 +429,16 @@ function draw(){
         ctx.lineWidth=3;
         ctx.stroke();
       }else if(t===5){
-        // key
         ctx.fillStyle="#ffd93d";
         ctx.fillRect(x+12,y+16,24,20);
         ctx.fillStyle="#c9a100";
         ctx.fillRect(x+18,y+12,12,8);
       }else if(t===6){
-        // door
         ctx.fillStyle="#5b3c1a";
         ctx.fillRect(x+8,y+4,TILE_SIZE-16,TILE_SIZE-4);
         ctx.fillStyle="#3c2610";
         ctx.fillRect(x+14,y+10,TILE_SIZE-28,TILE_SIZE-18);
       }else if(t===7){
-        // spikes
         ctx.fillStyle="#444";
         const baseY = y+TILE_SIZE;
         const w = TILE_SIZE/3;
