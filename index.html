@@ -21,15 +21,41 @@ body{
   text-shadow:2px 2px 4px rgba(0,0,0,0.7);
   z-index:10;
 }
+#adModal{
+  display:none;
+  position:fixed;left:0;top:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.9);
+  z-index:999;
+  align-items:center;
+  justify-content:center;
+}
+#adBox{
+  width:90%;max-width:400px;
+  background:#111;padding:20px;
+  border-radius:18px;
+  text-align:center;
+  color:#fff;
+}
+#adTitle{font-size:20px;margin-bottom:10px}
+#adNote{font-size:14px;color:#ccc;margin-bottom:10px}
 </style>
 </head>
 <body>
-<canvas id="gameCanvas"></canvas>
+anvas id="gameCanvas"></canvas>
 <div id="ui">
   Score: <span id="score">0</span> |
   Lives: <span id="lives">3</span> |
   Level: <span id="level">1</span> |
   Time: <span id="time">0</span>s
+</div>
+
+<!-- Reward Ad Modal -->
+<div id="adModal">
+  <div id="adBox">
+    <div id="adTitle">Playing reward audio…</div>
+    <div id="adNote">Listen till the end to restart with 3 lives</div>
+    <audio id="adAudio"></audio>
+  </div>
 </div>
 
 <script>
@@ -121,6 +147,11 @@ let lives = 3;
 // input flags
 let keyLeft=false,keyRight=false,keyJump=false;
 
+// reward ad elements
+const adModal  = document.getElementById("adModal");
+const adAudio  = document.getElementById("adAudio");
+const adFile   = "vid-20251127-233903_BeFYH0fz.mp3"; // tumhara audio
+
 // keyboard (PC)
 window.addEventListener("keydown",e=>{
   if(["ArrowLeft","ArrowRight","ArrowUp","Space"," "].includes(e.code)) e.preventDefault();
@@ -164,17 +195,14 @@ canvas.addEventListener("touchend",(e)=>{
   const angle = Math.atan2(-dy, dx) * 180 / Math.PI;
 
   if(angle > 45 && angle < 135){
-    // swipe up = jump
-    keyJump = true;
+    keyJump = true;           // swipe up
   }else if(angle < -45 && angle > -135){
-    // swipe down (future: slide)
+    // swipe down (future slide)
   }else if(angle >= 135 || angle <= -135){
-    // swipe left
-    keyLeft = true;
+    keyLeft = true;           // swipe left
     setTimeout(()=>keyLeft=false,150);
   }else if(angle >= -45 && angle <= 45){
-    // swipe right
-    keyRight = true;
+    keyRight = true;          // swipe right
     setTimeout(()=>keyRight=false,150);
   }
 });
@@ -193,7 +221,7 @@ function loadLevel(index){
   tiles = [];
   for(let r=0;r<rows;r++){
     tiles[r]=[];
-    for(let c=0;c<cols;c++){
+    for(let c=0;cls;c++){
       tiles[r][c] = parseInt(layout[r][c],10);
     }
   }
@@ -317,7 +345,7 @@ function resolveCollisions(axis){
 function handleCoins(){
   const p = {x:player.x,y:player.y,w:player.w,h:player.h};
   for(let r=0;r<rows;r++){
-    for(let c=0;c<cols;c++){
+    for(let c=0;cls;c++){
       if(tiles[r][c]===3){
         const rect = {x:c*TILE_SIZE+12,y:r*TILE_SIZE+12,w:24,h:24};
         if(rectIntersect(p,rect)){
@@ -332,7 +360,7 @@ function handleCoins(){
 function handleSpikes(){
   const p = {x:player.x,y:player.y,w:player.w,h:player.h};
   for(let r=0;r<rows;r++){
-    for(let c=0;c<cols;c++){
+    for(let c=0;cls;c++){
       if(tiles[r][c]===7){
         const rect = {x:c*TILE_SIZE,y:r*TILE_SIZE,w:TILE_SIZE,h:TILE_SIZE};
         if(rectIntersect(p,rect)){
@@ -348,7 +376,7 @@ function handleSpikes(){
 function handleKeyAndDoor(){
   const p = {x:player.x,y:player.y,w:player.w,h:player.h};
   for(let r=0;r<rows;r++){
-    for(let c=0;c<cols;c++){
+    for(let c=0;cls;c++){
       const t = tiles[r][c];
       const x = c*TILE_SIZE;
       const y = r*TILE_SIZE;
@@ -374,11 +402,10 @@ function handleKeyAndDoor(){
   }
 }
 
+// lives 0 => reward ad, warna normal respawn
 function respawn(){
   if(lives <= 0){
-    lives = 3;
-    score = 0;
-    loadLevel(0);
+    startRewardAd();
   }else{
     player.x = TILE_SIZE*2;
     player.y = TILE_SIZE*(rows-4);
@@ -387,6 +414,29 @@ function respawn(){
     levelTimer = 0; // same level, score safe
   }
 }
+
+// reward ad start
+function startRewardAd(){
+  adAudio.src = adFile;
+  adModal.style.display = "flex";
+  adAudio.currentTime = 0;
+  adAudio.play().catch(()=>{});
+}
+
+// ad complete -> same level restart with 3 lives
+adAudio.onended = () => {
+  lives = 3;
+  // score ko rakhna hai to yahi rehne do; reset karna ho to:
+  // score = 0;
+
+  player.x = TILE_SIZE*2;
+  player.y = TILE_SIZE*(rows-4);
+  player.vx = player.vy = 0;
+  cameraX = 0;
+  levelTimer = 0;
+
+  adModal.style.display = "none";
+};
 
 // ===== DRAW =====
 function draw(){
@@ -411,7 +461,7 @@ function draw(){
 
   // tiles
   for(let r=0;r<rows;r++){
-    for(let c=0;c<cols;c++){
+    for(let c=0;cls;c++){
       const t = tiles[r][c];
       const x = c*TILE_SIZE;
       const y = r*TILE_SIZE;
