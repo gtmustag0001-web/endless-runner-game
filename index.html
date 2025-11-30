@@ -213,20 +213,16 @@ function gameLoop(now = performance.now()){
 function update(delta){
   if(!gameState.gameRunning)return;
 
-  // running animation phase
   runPhase += delta * 10;
 
-  // jump input
   if(inputActive && player.grounded){
     player.vy = player.jumpPower;
     player.grounded = false;
   }
 
-  // gravity + vertical movement
   player.vy += player.gravity * delta;
   player.y  += player.vy * delta;
 
-  // ground position (path ko upar lana)
   player.baseY = canvas.height - 160;
   if(player.y >= player.baseY - player.height){
     player.y = player.baseY - player.height;
@@ -234,11 +230,9 @@ function update(delta){
     player.grounded = true;
   }
 
-  // obstacle & coin spawn
   spawnTimer++;
   let spawnRate = Math.max(60,120 - gameState.gameSpeed*8);
   if(spawnTimer > spawnRate){
-    // obstacle (same height)
     obstacles.push({
       x:canvas.width + 50,
       y:player.baseY - 60,
@@ -246,9 +240,8 @@ function update(delta){
       height:60
     });
 
-    // coin or 2X power-up
     if(Math.random() > 0.3){
-      const isDoubleCoin = Math.random() < 0.25; // 25% chance 2X
+      const isDoubleCoin = Math.random() < 0.25;
       coins.push({
         x:canvas.width + 50,
         y:player.baseY - 150 - Math.random()*120,
@@ -261,7 +254,6 @@ function update(delta){
     spawnTimer = 0;
   }
 
-  // obstacles update + collision
   for(let i=obstacles.length-1;i>=0;i--){
     let o = obstacles[i];
     o.x -= gameState.gameSpeed;
@@ -282,7 +274,6 @@ function update(delta){
     }
   }
 
-  // coins update + collision (2X handling)
   for(let i=coins.length-1;i>=0;i--){
     let c = coins[i];
     c.x -= gameState.gameSpeed;
@@ -299,7 +290,7 @@ function update(delta){
       if(c.type === "double"){
         doubleScoreActive = true;
         scoreMultiplier = 2;
-        doubleScoreEndTime = performance.now() + 22000; // ~22s
+        doubleScoreEndTime = performance.now() + 22000;
       }else{
         gameState.score += 15 * scoreMultiplier;
       }
@@ -309,16 +300,13 @@ function update(delta){
     }
   }
 
-  // 2X timer check
   if(doubleScoreActive && performance.now() > doubleScoreEndTime){
     doubleScoreActive = false;
     scoreMultiplier = 1;
   }
 
-  // distance/time score
   gameState.score += 0.15 * scoreMultiplier;
 
-  // speed & ground scroll
   gameState.gameSpeed += 0.0008;
   gameState.groundOffset -= gameState.gameSpeed;
 
@@ -331,7 +319,6 @@ function update(delta){
 }
 
 function draw(){
-  // sky
   let g = ctx.createLinearGradient(0,0,0,canvas.height);
   g.addColorStop(0,"#87CEEB");
   g.addColorStop(0.5,"#98D8E8");
@@ -339,7 +326,6 @@ function draw(){
   ctx.fillStyle=g;
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // clouds
   ctx.fillStyle="rgba(255,255,255,0.8)";
   for(let i=0;i<5;i++){
     let cx=(gameState.groundOffset*0.3+i*200)%(canvas.width+200)-200;
@@ -350,9 +336,13 @@ function draw(){
     ctx.fill();
   }
 
-  // visible ground path
+  const groundHeight = 80;
+
   ctx.fillStyle = "#8B4513";
-  ctx.fillRect(gameState.groundOffset, player.baseY, canvas.width*3, 80);
+  for (let i = -1; i <= canvas.width / 100 + 2; i++) {
+    const tileX = (gameState.groundOffset + i * 100) % (canvas.width + 200) - 100;
+    ctx.fillRect(tileX, player.baseY, 100, groundHeight);
+  }
 
   ctx.strokeStyle = "#5d2e0d";
   ctx.lineWidth = 3;
@@ -362,16 +352,14 @@ function draw(){
   ctx.stroke();
 
   ctx.fillStyle="#A0522D";
-  for(let i=0;i<80;i++){
-    let x = (gameState.groundOffset + i*40) % canvas.width;
+  for(let i=-1;i<=canvas.width/40+2;i++){
+    const x = (gameState.groundOffset + i * 40) % (canvas.width + 80) - 40;
     ctx.fillRect(x, player.baseY+10, 30, 12);
   }
 
-  // player stickman
   const cxP = player.x + player.width/2;
   const cyP = player.y + player.height/2;
 
-  // body
   ctx.strokeStyle="#000";
   ctx.lineWidth=4;
   ctx.beginPath();
@@ -379,14 +367,12 @@ function draw(){
   ctx.lineTo(cxP,cyP+15);
   ctx.stroke();
 
-  // head
   ctx.fillStyle="#ffcc99";
   ctx.beginPath();
   ctx.arc(cxP,cyP-20,10,0,Math.PI*2);
   ctx.fill();
   ctx.stroke();
 
-  // arms
   ctx.beginPath();
   ctx.moveTo(cxP,cyP+2);
   ctx.lineTo(cxP-15,cyP-5);
@@ -394,7 +380,6 @@ function draw(){
   ctx.lineTo(cxP+15,cyP-5);
   ctx.stroke();
 
-  // legs with simple run animation
   const legOffset = Math.sin(runPhase) * 6;
   ctx.beginPath();
   ctx.moveTo(cxP,cyP+15);
@@ -403,11 +388,9 @@ function draw(){
   ctx.lineTo(cxP+10,cyP+30-legOffset);
   ctx.stroke();
 
-  // body fill (shirt)
   ctx.fillStyle="#4169E1";
   ctx.fillRect(cxP-8,cyP-2,16,14);
 
-  // coins & 2X power-ups
   coins.forEach(c=>{
     ctx.save();
     ctx.translate(c.x+c.width/2,c.y+c.height/2);
@@ -440,7 +423,6 @@ function draw(){
     ctx.restore();
   });
 
-  // obstacles
   ctx.shadowColor="#DC143C";
   ctx.shadowBlur=10;
   ctx.fillStyle="#DC143C";
@@ -465,7 +447,6 @@ function gameOver(){
   document.getElementById("gameOver").style.display="block";
 }
 
-/* reward ad audio */
 const adModal  = document.getElementById("adModal");
 const adAudio  = document.getElementById("adAudio");
 const rewardBtn= document.getElementById("rewardBtn");
