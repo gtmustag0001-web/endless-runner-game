@@ -74,7 +74,7 @@ const player = {
   vx: 0,
   vy: 0,
   speed: 260,
-  jumpForce: 820,   // HIGHER JUMP so platform easily cross ho [web:99][web:101]
+  jumpForce: 820,   // high jump
   onGround: false
 };
 
@@ -82,7 +82,7 @@ let cameraX = 0;
 let score = 0;
 let lives = 3;
 
-// (no enemies for now)
+// enemies array (abhi empty)
 const enemies = [];
 
 // ====== INPUT ======
@@ -164,7 +164,9 @@ function update(dt){
 
   handleCoins();
 
+  // y bahut neeche gaya to life -1 + respawn
   if(player.y > canvas.height + 400){
+    lives--;
     respawn();
   }
 
@@ -223,17 +225,16 @@ function handleCoins(){
 }
 
 function respawn(){
+  if(lives <= 0){
+    // game reset
+    lives = 3;
+    score = 0;
+  }
   player.x = TILE_SIZE*2;
   player.y = TILE_SIZE*8;
   player.vx = 0;
   player.vy = 0;
   cameraX = 0;
-  if(lives<=0){
-    lives = 3;
-    score = 0;
-  }else{
-    lives--;
-  }
 }
 
 // ====== DRAW ======
@@ -280,41 +281,34 @@ function draw(){
     }
   }
 
-  // === NINJA AVATAR ===
+  // NINJA
   const px = player.x;
   const py = player.y;
 
-  // shadow
   ctx.fillStyle = "rgba(0,0,0,0.3)";
   ctx.beginPath();
   ctx.ellipse(px+player.w/2, py+player.h, 18, 6, 0, 0, Math.PI*2);
   ctx.fill();
 
-  // body
   ctx.fillStyle = "#111111";
   ctx.fillRect(px, py, player.w, player.h-12);
 
-  // belt
   ctx.fillStyle = "#4444ff";
   ctx.fillRect(px, py+player.h-26, player.w, 6);
 
-  // head
   ctx.fillStyle = "#111111";
   ctx.fillRect(px, py-14, player.w, 14);
 
-  // headband
   ctx.fillStyle = "#ff3333";
   ctx.fillRect(px, py-18, player.w, 4);
   ctx.fillRect(px+player.w-6, py-18, 8, 10);
 
-  // eyes (small white dots)
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(px+6, py-11, 4, 3);
   ctx.fillRect(px+player.w-10, py-11, 4, 3);
 
-  // legs
   ctx.fillStyle = "#000000";
-  ctx.fillRect(px, py+player.h-16, player.w/2, 16);
+  ctx.fillRect(px,            py+player.h-16, player.w/2, 16);
   ctx.fillRect(px+player.w/2, py+player.h-16, player.w/2, 16);
 
   ctx.restore();
