@@ -150,7 +150,7 @@ let keyLeft=false,keyRight=false,keyJump=false;
 // reward ad elements
 const adModal  = document.getElementById("adModal");
 const adAudio  = document.getElementById("adAudio");
-const adFile   = "vid-20251127-233903_BeFYH0fz.mp3"; // tumhara audio
+const adFile   = "vid-20251127-233903_BeFYH0fz.mp3"; // apni file ka naam yahi rakho
 
 // keyboard (PC)
 window.addEventListener("keydown",e=>{
@@ -187,8 +187,7 @@ canvas.addEventListener("touchend",(e)=>{
   const minSwipe = 30;
 
   if(dist < minSwipe){
-    // tap = jump
-    keyJump = true;
+    keyJump = true;  // tap = jump
     return;
   }
 
@@ -411,7 +410,7 @@ function respawn(){
     player.y = TILE_SIZE*(rows-4);
     player.vx = player.vy = 0;
     cameraX = 0;
-    levelTimer = 0; // same level, score safe
+    levelTimer = 0;
   }
 }
 
@@ -426,8 +425,7 @@ function startRewardAd(){
 // ad complete -> same level restart with 3 lives
 adAudio.onended = () => {
   lives = 3;
-  // score ko rakhna hai to yahi rehne do; reset karna ho to:
-  // score = 0;
+  // score = 0; // agar revive pe score reset chahiye to uncomment karo
 
   player.x = TILE_SIZE*2;
   player.y = TILE_SIZE*(rows-4);
