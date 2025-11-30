@@ -336,25 +336,15 @@ function draw(){
     ctx.fill();
   }
 
+  // continuous solid ground path
   const groundHeight = 80;
-
   ctx.fillStyle = "#8B4513";
-  for (let i = -1; i <= canvas.width / 100 + 2; i++) {
-    const tileX = (gameState.groundOffset + i * 100) % (canvas.width + 200) - 100;
-    ctx.fillRect(tileX, player.baseY, 100, groundHeight);
-  }
+  ctx.fillRect(0, player.baseY, canvas.width, groundHeight);
 
-  ctx.strokeStyle = "#5d2e0d";
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(0, player.baseY);
-  ctx.lineTo(canvas.width, player.baseY);
-  ctx.stroke();
-
+  // bricks stripe on top of ground
   ctx.fillStyle="#A0522D";
-  for(let i=-1;i<=canvas.width/40+2;i++){
-    const x = (gameState.groundOffset + i * 40) % (canvas.width + 80) - 40;
-    ctx.fillRect(x, player.baseY+10, 30, 12);
+  for(let i=0;i<canvas.width;i+=40){
+    ctx.fillRect(i, player.baseY+10, 30, 12);
   }
 
   const cxP = player.x + player.width/2;
