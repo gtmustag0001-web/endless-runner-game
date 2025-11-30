@@ -41,7 +41,9 @@ body{
 </style>
 </head>
 <body>
+
 anvas id="gameCanvas"></canvas>
+
 <div id="ui">
   Score: <span id="score">0</span> |
   Lives: <span id="lives">3</span> |
@@ -49,7 +51,6 @@ anvas id="gameCanvas"></canvas>
   Time: <span id="time">0</span>s
 </div>
 
-<!-- Reward Ad Modal -->
 <div id="adModal">
   <div id="adBox">
     <div id="adTitle">Playing reward audio…</div>
@@ -59,6 +60,7 @@ anvas id="gameCanvas"></canvas>
 </div>
 
 <script>
+// ===== BASIC SETUP =====
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -147,12 +149,12 @@ let lives = 3;
 // input flags
 let keyLeft=false,keyRight=false,keyJump=false;
 
-// reward ad elements
+// reward ad
 const adModal  = document.getElementById("adModal");
 const adAudio  = document.getElementById("adAudio");
-const adFile   = "vid-20251127-233903_BeFYH0fz.mp3"; // apni file ka naam yahi rakho
+const adFile   = "vid-20251127-233903_BeFYH0fz.mp3";
 
-// keyboard (PC)
+// ===== INPUT =====
 window.addEventListener("keydown",e=>{
   if(["ArrowLeft","ArrowRight","ArrowUp","Space"," "].includes(e.code)) e.preventDefault();
   if(e.code==="ArrowLeft")  keyLeft=true;
@@ -165,7 +167,6 @@ window.addEventListener("keyup",e=>{
   if(e.code==="ArrowUp"||e.code==="Space") keyJump=false;
 });
 
-// touch + swipe (mobile)
 let touchStartX=0,touchStartY=0,touchEndX=0,touchEndY=0;
 
 canvas.addEventListener("touchstart",(e)=>{
@@ -187,21 +188,21 @@ canvas.addEventListener("touchend",(e)=>{
   const minSwipe = 30;
 
   if(dist < minSwipe){
-    keyJump = true;  // tap = jump
+    keyJump = true;
     return;
   }
 
   const angle = Math.atan2(-dy, dx) * 180 / Math.PI;
 
   if(angle > 45 && angle < 135){
-    keyJump = true;           // swipe up
+    keyJump = true;
   }else if(angle < -45 && angle > -135){
     // swipe down (future slide)
   }else if(angle >= 135 || angle <= -135){
-    keyLeft = true;           // swipe left
+    keyLeft = true;
     setTimeout(()=>keyLeft=false,150);
   }else if(angle >= -45 && angle <= 45){
-    keyRight = true;          // swipe right
+    keyRight = true;
     setTimeout(()=>keyRight=false,150);
   }
 });
@@ -255,19 +256,16 @@ function loop(now=performance.now()){
 }
 
 function update(dt){
-  // timer
   levelTimer += dt;
   if(levelTimer > maxTime){
     lives--;
     respawn();
   }
 
-  // movement
   player.vx = 0;
   if(keyLeft)  player.vx -= player.speed;
   if(keyRight) player.vx += player.speed;
 
-  // jump
   if(keyJump && player.onGround){
     player.vy = -player.jumpForce;
     player.onGround = false;
@@ -284,7 +282,6 @@ function update(dt){
   player.onGround = false;
   resolveCollisions("y");
 
-  // camera
   const centerX = player.x + player.w/2;
   cameraX = centerX - canvas.width/2;
   if(cameraX < 0) cameraX = 0;
@@ -295,7 +292,6 @@ function update(dt){
   handleSpikes();
   handleKeyAndDoor();
 
-  // fall death
   if(player.y > canvas.height + 400){
     lives--;
     respawn();
@@ -380,7 +376,7 @@ function handleKeyAndDoor(){
       const x = c*TILE_SIZE;
       const y = r*TILE_SIZE;
 
-      if(t===5){ // key
+      if(t===5){
         const rect = {x:x+8,y:y+8,w:32,h:32};
         if(rectIntersect(p,rect)){
           tiles[r][c]=0;
@@ -388,7 +384,7 @@ function handleKeyAndDoor(){
         }
       }
 
-      if(t===6 && hasKey){ // door
+      if(t===6 && hasKey){
         const rect = {x:x,y:y,w:TILE_SIZE,h:TILE_SIZE};
         if(rectIntersect(p,rect)){
           let next = currentLevel + 1;
@@ -401,7 +397,7 @@ function handleKeyAndDoor(){
   }
 }
 
-// lives 0 => reward ad, warna normal respawn
+// ===== RESPAWN & AD =====
 function respawn(){
   if(lives <= 0){
     startRewardAd();
@@ -414,7 +410,6 @@ function respawn(){
   }
 }
 
-// reward ad start
 function startRewardAd(){
   adAudio.src = adFile;
   adModal.style.display = "flex";
@@ -422,7 +417,6 @@ function startRewardAd(){
   adAudio.play().catch(()=>{});
 }
 
-// ad complete -> same level restart with 3 lives
 adAudio.onended = () => {
   lives = 3;
   // score = 0; // agar revive pe score reset chahiye to uncomment karo
@@ -441,7 +435,6 @@ function draw(){
   ctx.fillStyle = "#87CEEB";
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // parallax hills
   ctx.fillStyle = "#7ec8e3";
   for(let i=-1;i<10;i++){
     const x = i*200 - (cameraX*0.3)%200;
@@ -457,7 +450,6 @@ function draw(){
   ctx.save();
   ctx.translate(-cameraX,0);
 
-  // tiles
   for(let r=0;r<rows;r++){
     for(let c=0;cls;c++){
       const t = tiles[r][c];
@@ -503,7 +495,6 @@ function draw(){
     }
   }
 
-  // NINJA
   const px = player.x;
   const py = player.y;
 
@@ -536,7 +527,7 @@ function draw(){
   ctx.restore();
 }
 
-// start
+// start game
 loadLevel(0);
 loop();
 </script>
