@@ -102,6 +102,7 @@ function resizeCanvas(){
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
+// ==== GAME STATE ====
 let gameState = {
   score:0,
   lives:3,
@@ -126,47 +127,84 @@ let obstacles = [],
     coins = [],
     particles = [],
     spawnTimer = 0;
-let inputActive = false;
 
 // 2X score power-up
 let doubleScoreActive = false;
 let doubleScoreEndTime = 0;
 let scoreMultiplier = 1;
 
-// running legs animation
+// animation + input
 let runPhase = 0;
+let keyLeft = false;
+let keyRight = false;
+let keyJump = false;
+let touchStartX = 0, touchStartY = 0, touchEndX = 0, touchEndY = 0;
 
 /* background music: jaat.mp3 */
 const bgMusic = document.getElementById("bgMusic");
 const bgFile  = "jaat.mp3";
 let bgStarted = false;
 
+// ==== INPUT: TOUCH / MOUSE (MOBILE + PC) ====
 canvas.addEventListener("touchstart", function (e) {
   e.preventDefault();
-  inputActive = true;
   if (!bgStarted) {
     bgMusic.src = bgFile;
     bgMusic.play();
     bgStarted = true;
   }
+  const t = e.changedTouches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
 });
 canvas.addEventListener("touchend", function (e) {
   e.preventDefault();
-  inputActive = false;
+  const t = e.changedTouches[0];
+  touchEndX = t.clientX;
+  touchEndY = t.clientY;
+
+  const dx = touchEndX - touchStartX;
+  const dy = touchEndY - touchStartY;
+  const dist = Math.hypot(dx, dy);
+  const minSwipe = 30;
+
+  if (dist < minSwipe) {
+    // tap = jump
+    keyJump = true;
+  } else {
+    // swipe up = jump
+    const angle = Math.atan2(-dy, dx);
+    const deg = angle * 180 / Math.PI;
+    if (deg > 45 && deg < 135) keyJump = true;
+  }
 });
 
 canvas.addEventListener("mousedown", function () {
-  inputActive = true;
   if (!bgStarted) {
     bgMusic.src = bgFile;
     bgMusic.play();
     bgStarted = true;
   }
-});
-canvas.addEventListener("mouseup", function () {
-  inputActive = false;
+  keyJump = true;
 });
 
+// ==== INPUT: KEYBOARD (PC) ====
+window.addEventListener("keydown", (e) => {
+  if (["ArrowLeft","ArrowRight","ArrowUp","Space"," "].includes(e.code) ||
+      ["ArrowLeft","ArrowRight","ArrowUp","Space"," "].includes(e.key)) {
+    e.preventDefault();          // space / arrows se scroll na ho [web:69]
+  }
+  if (e.code === "ArrowLeft")  keyLeft  = true;
+  if (e.code === "ArrowRight") keyRight = true;
+  if (e.code === "ArrowUp" || e.code === "Space") keyJump = true;
+});
+window.addEventListener("keyup", (e) => {
+  if (e.code === "ArrowLeft")  keyLeft  = false;
+  if (e.code === "ArrowRight") keyRight = false;
+  if (e.code === "ArrowUp" || e.code === "Space") keyJump = false;
+});
+
+// ==== FX PARTICLES ====
 function createParticles(x,y){
   for(let i=0;i<8;i++){
     particles.push({
@@ -200,6 +238,7 @@ function drawParticles(){
   });
 }
 
+// ==== MAIN LOOP ====
 let lastTime = performance.now();
 function gameLoop(now = performance.now()){
   const delta = (now - lastTime) / 1000; // seconds
@@ -215,11 +254,14 @@ function update(delta){
 
   runPhase += delta * 10;
 
-  if(inputActive && player.grounded){
+  // jump (PC + mobile)
+  if (keyJump && player.grounded) {
     player.vy = player.jumpPower;
     player.grounded = false;
   }
+  keyJump = false; // one-press one-jump
 
+  // gravity
   player.vy += player.gravity * delta;
   player.y  += player.vy * delta;
 
@@ -230,6 +272,7 @@ function update(delta){
     player.grounded = true;
   }
 
+  // spawn
   spawnTimer++;
   let spawnRate = Math.max(60,120 - gameState.gameSpeed*8);
   if(spawnTimer > spawnRate){
@@ -254,6 +297,7 @@ function update(delta){
     spawnTimer = 0;
   }
 
+  // obstacles
   for(let i=obstacles.length-1;i>=0;i--){
     let o = obstacles[i];
     o.x -= gameState.gameSpeed;
@@ -274,6 +318,7 @@ function update(delta){
     }
   }
 
+  // coins + 2X
   for(let i=coins.length-1;i>=0;i--){
     let c = coins[i];
     c.x -= gameState.gameSpeed;
@@ -300,6 +345,7 @@ function update(delta){
     }
   }
 
+  // 2X timer
   if(doubleScoreActive && performance.now() > doubleScoreEndTime){
     doubleScoreActive = false;
     scoreMultiplier = 1;
@@ -318,7 +364,9 @@ function update(delta){
     label + " | Lives: " + gameState.lives;
 }
 
+// ==== DRAW ====
 function draw(){
+  // sky
   let g = ctx.createLinearGradient(0,0,0,canvas.height);
   g.addColorStop(0,"#87CEEB");
   g.addColorStop(0.5,"#98D8E8");
@@ -326,6 +374,7 @@ function draw(){
   ctx.fillStyle=g;
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
+  // clouds
   ctx.fillStyle="rgba(255,255,255,0.8)";
   for(let i=0;i<5;i++){
     let cx=(gameState.groundOffset*0.3+i*200)%(canvas.width+200)-200;
@@ -336,21 +385,19 @@ function draw(){
     ctx.fill();
   }
 
-  // continuous solid ground path
+  // continuous ground
   const groundHeight = 80;
   ctx.fillStyle = "#8B4513";
   ctx.fillRect(0, player.baseY, canvas.width, groundHeight);
 
-  // bricks stripe
   ctx.fillStyle="#A0522D";
   for(let i=0;i<canvas.width;i+=40){
     ctx.fillRect(i, player.baseY+10, 30, 12);
   }
 
-  // === PLAYER DRAW (3D-ish suit runner) ===
+  // === PLAYER (Vector-style suit) ===
   const cxP = player.x + player.width/2;
   const cyP = player.y + player.height/2;
-
   const bodyHeight = 55;
   const headRadius = 11;
 
@@ -388,7 +435,7 @@ function draw(){
   ctx.lineTo(cxP + 24, cyP - 8);
   ctx.stroke();
 
-  // legs with run animation
+  // legs
   const legOffset = Math.sin(runPhase) * 7;
   ctx.beginPath();
   ctx.moveTo(cxP, cyP + bodyHeight/4);
@@ -411,10 +458,9 @@ function draw(){
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  ctx.fillStyle = "#f2c09b";
   ctx.fillRect(cxP - 3, cyP - bodyHeight/2 + headRadius - 2, 6, 5);
 
-  // coins & 2X
+  // coins
   coins.forEach(c=>{
     ctx.save();
     ctx.translate(c.x+c.width/2,c.y+c.height/2);
@@ -466,6 +512,7 @@ function draw(){
   drawParticles();
 }
 
+// ==== GAME OVER & AD ====
 function gameOver(){
   gameState.gameRunning=false;
   document.getElementById("finalScore").textContent=Math.floor(gameState.score);
