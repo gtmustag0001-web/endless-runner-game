@@ -226,8 +226,8 @@ function update(delta){
   player.vy += player.gravity * delta;
   player.y  += player.vy * delta;
 
-  // ground position
-  player.baseY = canvas.height - 220;
+  // ground position (path ko upar lana)
+  player.baseY = canvas.height - 160;
   if(player.y >= player.baseY - player.height){
     player.y = player.baseY - player.height;
     player.vy = 0;
@@ -350,14 +350,21 @@ function draw(){
     ctx.fill();
   }
 
-  // ground
-  ctx.fillStyle="#8B4513";
-  ctx.fillRect(gameState.groundOffset,player.baseY+20,canvas.width*3,canvas.height-player.baseY);
+  // visible ground path
+  ctx.fillStyle = "#8B4513";
+  ctx.fillRect(gameState.groundOffset, player.baseY, canvas.width*3, 80);
+
+  ctx.strokeStyle = "#5d2e0d";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, player.baseY);
+  ctx.lineTo(canvas.width, player.baseY);
+  ctx.stroke();
 
   ctx.fillStyle="#A0522D";
-  for(let i=0;i<50;i++){
-    let x=(gameState.groundOffset+i*40)%canvas.width;
-    ctx.fillRect(x,player.baseY+25,30,10);
+  for(let i=0;i<80;i++){
+    let x = (gameState.groundOffset + i*40) % canvas.width;
+    ctx.fillRect(x, player.baseY+10, 30, 12);
   }
 
   // player stickman
@@ -409,7 +416,6 @@ function draw(){
     ctx.shadowBlur=12;
 
     if(c.type === "double"){
-      // 2X coin: blue outline + inner 2X text
       ctx.fillStyle="#00e5ff";
     }else{
       ctx.fillStyle="#FFD700";
