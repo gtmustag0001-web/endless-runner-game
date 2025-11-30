@@ -114,7 +114,7 @@ const player = {
   x:80,
   y:0,
   width:45,
-  height:45,
+  height:60,   // taller player
   vy:0,
   gravity:2000,      // pixels/s²
   jumpPower:-900,    // pixels/s
@@ -341,46 +341,80 @@ function draw(){
   ctx.fillStyle = "#8B4513";
   ctx.fillRect(0, player.baseY, canvas.width, groundHeight);
 
-  // bricks stripe on top of ground
+  // bricks stripe
   ctx.fillStyle="#A0522D";
   for(let i=0;i<canvas.width;i+=40){
     ctx.fillRect(i, player.baseY+10, 30, 12);
   }
 
+  // === PLAYER DRAW (3D-ish suit runner) ===
   const cxP = player.x + player.width/2;
   const cyP = player.y + player.height/2;
 
-  ctx.strokeStyle="#000";
-  ctx.lineWidth=4;
-  ctx.beginPath();
-  ctx.moveTo(cxP,cyP-5);
-  ctx.lineTo(cxP,cyP+15);
-  ctx.stroke();
+  const bodyHeight = 55;
+  const headRadius = 11;
 
-  ctx.fillStyle="#ffcc99";
+  // shadow
+  ctx.fillStyle = "rgba(0,0,0,0.25)";
   ctx.beginPath();
-  ctx.arc(cxP,cyP-20,10,0,Math.PI*2);
+  ctx.ellipse(cxP, player.baseY + 8, 18, 6, 0, 0, Math.PI*2);
   ctx.fill();
-  ctx.stroke();
 
+  // jacket
+  ctx.fillStyle = "#111111";
+  ctx.fillRect(cxP - 11, cyP - bodyHeight/4, 22, bodyHeight/2);
+
+  // shirt
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(cxP - 6, cyP - bodyHeight/4 + 2, 12, bodyHeight/2 - 4);
+
+  // tie
+  ctx.fillStyle = "#222222";
   ctx.beginPath();
-  ctx.moveTo(cxP,cyP+2);
-  ctx.lineTo(cxP-15,cyP-5);
-  ctx.moveTo(cxP,cyP+2);
-  ctx.lineTo(cxP+15,cyP-5);
-  ctx.stroke();
+  ctx.moveTo(cxP, cyP - bodyHeight/4 + 4);
+  ctx.lineTo(cxP - 3, cyP - bodyHeight/4 + 14);
+  ctx.lineTo(cxP + 3, cyP - bodyHeight/4 + 14);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillRect(cxP - 2, cyP - bodyHeight/4 + 14, 4, 10);
 
-  const legOffset = Math.sin(runPhase) * 6;
+  // arms
+  ctx.strokeStyle = "#111111";
+  ctx.lineWidth = 5;
   ctx.beginPath();
-  ctx.moveTo(cxP,cyP+15);
-  ctx.lineTo(cxP-10,cyP+30+legOffset);
-  ctx.moveTo(cxP,cyP+15);
-  ctx.lineTo(cxP+10,cyP+30-legOffset);
+  ctx.moveTo(cxP - 10, cyP - bodyHeight/4 + 4);
+  ctx.lineTo(cxP - 24, cyP - 2);
+  ctx.moveTo(cxP + 10, cyP - bodyHeight/4 + 4);
+  ctx.lineTo(cxP + 24, cyP - 8);
   ctx.stroke();
 
-  ctx.fillStyle="#4169E1";
-  ctx.fillRect(cxP-8,cyP-2,16,14);
+  // legs with run animation
+  const legOffset = Math.sin(runPhase) * 7;
+  ctx.beginPath();
+  ctx.moveTo(cxP, cyP + bodyHeight/4);
+  ctx.lineTo(cxP - 10, cyP + bodyHeight/2 + legOffset);
+  ctx.moveTo(cxP, cyP + bodyHeight/4);
+  ctx.lineTo(cxP + 10, cyP + bodyHeight/2 - legOffset);
+  ctx.stroke();
 
+  // shoes
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(cxP - 14, cyP + bodyHeight/2 + legOffset - 2, 8, 4);
+  ctx.fillRect(cxP + 6,  cyP + bodyHeight/2 - legOffset - 2, 8, 4);
+
+  // head + neck
+  ctx.fillStyle = "#f2c09b";
+  ctx.beginPath();
+  ctx.arc(cxP, cyP - bodyHeight/2, headRadius, 0, Math.PI*2);
+  ctx.fill();
+  ctx.strokeStyle = "#000000";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = "#f2c09b";
+  ctx.fillRect(cxP - 3, cyP - bodyHeight/2 + headRadius - 2, 6, 5);
+
+  // coins & 2X
   coins.forEach(c=>{
     ctx.save();
     ctx.translate(c.x+c.width/2,c.y+c.height/2);
@@ -413,6 +447,7 @@ function draw(){
     ctx.restore();
   });
 
+  // obstacles
   ctx.shadowColor="#DC143C";
   ctx.shadowBlur=10;
   ctx.fillStyle="#DC143C";
