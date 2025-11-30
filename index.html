@@ -60,7 +60,7 @@ anvas id="gameCanvas"></canvas>
 </div>
 
 <script>
-// ===== BASIC SETUP =====
+// ========== BASIC SETUP ==========
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -75,86 +75,61 @@ const TILE_SIZE = 48;
 
 // 0 empty, 1 ground, 2 platform, 3 coin, 5 key, 6 door, 7 spikes
 const LEVELS = [
-  { // Level 1 – Easy
-    maxTime: 30,
-    layout: [
-      "000000000000000000000000000000000000",
-      "000000000000000000000000000000000000",
-      "000000000000000000000000000000000000",
-      "000000000000000000000000000000000000",
-      "000000000000003000000000000000000000",
-      "000000000000001111000000000000000000",
-      "000000000000000000000000000000000000",
-      "000000000000000000000000000000000000",
-      "000000000000000000000000000000000000",
-      "000000000000000000000050000000006000",
-      "000000000000000000000000000000000000",
-      "111111111111111111111111111111111111"
-    ]
-  },
-  { // Level 2 – Medium
-    maxTime: 28,
-    layout: [
-      "000000000000000000000000000000000000",
-      "000000000000000300000000000000000000",
-      "000000000000001111000000000000000000",
-      "000000000000000000000000000000000000",
-      "000000000000000000000000000030000000",
-      "000000000000000000000000000111100000",
-      "000000000000000000000000000000000000",
-      "000000000000000070000000000000000000",
-      "000000000000000070000000000000000000",
-      "000000000000000011110000000005000060",
-      "000000000000000000000000000000000000",
-      "111111111111111111111111111111111111"
-    ]
-  },
-  { // Level 3 – Hard
-    maxTime: 25,
-    layout: [
-      "000000000000000000000000000000000000",
-      "000000000000000000300000000000000000",
-      "000000000000000001111000000000000000",
-      "000000000000000000000000000000000000",
-      "000000000000003000000000000000000000",
-      "000000000000001111000000000000000000",
-      "000000000000000000000000003000000000",
-      "000000000000000000000000001111000000",
-      "000000000000000000700700000000000000",
-      "000000000000000000711710000000500060",
-      "000000000000000000000000000000000000",
-      "111111111111111111111111111111111111"
-    ]
-  }
+  {maxTime:30,layout:[
+    "000000000000000000000000000000000000",
+    "000000000000000000000000000000000000",
+    "000000000000000000000000000000000000",
+    "000000000000000000000000000000000000",
+    "000000000000003000000000000000000000",
+    "000000000000001111000000000000000000",
+    "000000000000000000000000000000000000",
+    "000000000000000000000000000000000000",
+    "000000000000000000000000000000000000",
+    "000000000000000000000050000000006000",
+    "000000000000000000000000000000000000",
+    "111111111111111111111111111111111111"
+  ]},
+  {maxTime:28,layout:[
+    "000000000000000000000000000000000000",
+    "000000000000000300000000000000000000",
+    "000000000000001111000000000000000000",
+    "000000000000000000000000000000000000",
+    "000000000000000000000000000030000000",
+    "000000000000000000000000000111100000",
+    "000000000000000000000000000000000000",
+    "000000000000000070000000000000000000",
+    "000000000000000070000000000000000000",
+    "000000000000000011110000000005000060",
+    "000000000000000000000000000000000000",
+    "111111111111111111111111111111111111"
+  ]},
+  {maxTime:25,layout:[
+    "000000000000000000000000000000000000",
+    "000000000000000000300000000000000000",
+    "000000000000000001111000000000000000",
+    "000000000000000000000000000000000000",
+    "000000000000003000000000000000000000",
+    "000000000000001111000000000000000000",
+    "000000000000000000000000003000000000",
+    "000000000000000000000000001111000000",
+    "000000000000000000700700000000000000",
+    "000000000000000000711710000000500060",
+    "000000000000000000000000000000000000",
+    "111111111111111111111111111111111111"
+  ]}
 ];
 
 let tiles=[], rows=0, cols=0;
-let currentLevel = 0;
-let levelTimer = 0;
-let maxTime = 30;
-let hasKey = false;
-
-const player = {
-  x:0,y:0,w:32,h:48,
-  vx:0,vy:0,
-  speed:260,
-  jumpForce:820,
-  onGround:false
-};
-
-let cameraX = 0;
-let score = 0;
-let lives = 3;
-
-// input flags
+let currentLevel=0, levelTimer=0, maxTime=30, hasKey=false;
+const player={x:0,y:0,w:32,h:48,vx:0,vy:0,speed:260,jumpForce:820,onGround:false};
+let cameraX=0, score=0, lives=3;
 let keyLeft=false,keyRight=false,keyJump=false;
 
-// reward ad
-const adModal  = document.getElementById("adModal");
-const adAudio  = document.getElementById("adAudio");
-const adFile   = "vid-20251127-233903_BeFYH0fz.mp3";
+const adModal=document.getElementById("adModal");
+const adAudio=document.getElementById("adAudio");
+const adFile="vid-20251127-233903_BeFYH0fz.mp3"; // apni file
 
-// ===== INPUT =====
+// ========== INPUT ==========
 window.addEventListener("keydown",e=>{
   if(["ArrowLeft","ArrowRight","ArrowUp","Space"," "].includes(e.code)) e.preventDefault();
   if(e.code==="ArrowLeft")  keyLeft=true;
@@ -168,169 +143,112 @@ window.addEventListener("keyup",e=>{
 });
 
 let touchStartX=0,touchStartY=0,touchEndX=0,touchEndY=0;
-
-canvas.addEventListener("touchstart",(e)=>{
+canvas.addEventListener("touchstart",e=>{
   e.preventDefault();
-  const t = e.changedTouches[0];
-  touchStartX = t.clientX;
-  touchStartY = t.clientY;
+  const t=e.changedTouches[0];
+  touchStartX=t.clientX; touchStartY=t.clientY;
+});
+canvas.addEventListener("touchend",e=>{
+  e.preventDefault();
+  const t=e.changedTouches[0];
+  touchEndX=t.clientX; touchEndY=t.clientY;
+  const dx=touchEndX-touchStartX, dy=touchEndY-touchStartY;
+  const dist=Math.hypot(dx,dy), minSwipe=30;
+  if(dist<minSwipe){ keyJump=true; return; }
+  const angle=Math.atan2(-dy,dx)*180/Math.PI;
+  if(angle>45 && angle<135) keyJump=true;
+  else if(angle>=135 || angle<=-135){ keyLeft=true; setTimeout(()=>keyLeft=false,150); }
+  else if(angle>=-45 && angle<=45){ keyRight=true; setTimeout(()=>keyRight=false,150); }
 });
 
-canvas.addEventListener("touchend",(e)=>{
-  e.preventDefault();
-  const t = e.changedTouches[0];
-  touchEndX = t.clientX;
-  touchEndY = t.clientY;
-
-  const dx = touchEndX - touchStartX;
-  const dy = touchEndY - touchStartY;
-  const dist = Math.hypot(dx, dy);
-  const minSwipe = 30;
-
-  if(dist < minSwipe){
-    keyJump = true;
-    return;
-  }
-
-  const angle = Math.atan2(-dy, dx) * 180 / Math.PI;
-
-  if(angle > 45 && angle < 135){
-    keyJump = true;
-  }else if(angle < -45 && angle > -135){
-    // swipe down (future slide)
-  }else if(angle >= 135 || angle <= -135){
-    keyLeft = true;
-    setTimeout(()=>keyLeft=false,150);
-  }else if(angle >= -45 && angle <= 45){
-    keyRight = true;
-    setTimeout(()=>keyRight=false,150);
-  }
-});
-
-// ===== LOAD LEVEL =====
-function loadLevel(index){
-  currentLevel = index;
-  const data = LEVELS[index];
-  maxTime = data.maxTime;
-  levelTimer = 0;
-  hasKey = false;
-
-  const layout = data.layout;
-  rows = layout.length;
-  cols = layout[0].length;
-  tiles = [];
+// ========== LEVEL LOAD ==========
+function loadLevel(idx){
+  currentLevel=idx;
+  const data=LEVELS[idx];
+  maxTime=data.maxTime; levelTimer=0; hasKey=false;
+  const layout=data.layout;
+  rows=layout.length; cols=layout[0].length;
+  tiles=[];
   for(let r=0;r<rows;r++){
     tiles[r]=[];
-    for(let c=0;cls;c++){
-      tiles[r][c] = parseInt(layout[r][c],10);
-    }
+    for(let c=0;cls;c++) tiles[r][c]=parseInt(layout[r][c],10);
   }
-
-  player.x = TILE_SIZE*2;
-  player.y = TILE_SIZE*(rows-4);
-  player.vx = player.vy = 0;
-  player.onGround = false;
-  cameraX = 0;
-
-  document.getElementById("level").textContent = index+1;
+  player.x=TILE_SIZE*2;
+  player.y=TILE_SIZE*(rows-4);
+  player.vx=player.vy=0; player.onGround=false;
+  cameraX=0;
+  document.getElementById("level").textContent=idx+1;
 }
 
-// ===== PHYSICS =====
-const GRAVITY = 2000;
-const MAX_FALL_SPEED = 1200;
-
+// ========== PHYSICS ==========
+const GRAVITY=2000, MAX_FALL_SPEED=1200;
 function rectIntersect(a,b){
-  return a.x < b.x + b.w &&
-         a.x + a.w > b.x &&
-         a.y < b.y + b.h &&
-         a.y + a.h > b.y;
+  return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y;
 }
 
-let lastTime = performance.now();
+let lastTime=performance.now();
 function loop(now=performance.now()){
-  const dt = (now-lastTime)/1000;
-  lastTime = now;
-  update(dt);
-  draw();
-  requestAnimationFrame(loop);
+  const dt=(now-lastTime)/1000; lastTime=now;
+  update(dt); draw(); requestAnimationFrame(loop);
 }
 
 function update(dt){
-  levelTimer += dt;
-  if(levelTimer > maxTime){
-    lives--;
-    respawn();
-  }
+  levelTimer+=dt;
+  if(levelTimer>maxTime){ lives--; respawn(); }
 
-  player.vx = 0;
-  if(keyLeft)  player.vx -= player.speed;
-  if(keyRight) player.vx += player.speed;
+  player.vx=0;
+  if(keyLeft)  player.vx-=player.speed;
+  if(keyRight) player.vx+=player.speed;
 
   if(keyJump && player.onGround){
-    player.vy = -player.jumpForce;
-    player.onGround = false;
+    player.vy=-player.jumpForce;
+    player.onGround=false;
   }
-  keyJump = false;
+  keyJump=false;
 
-  player.vy += GRAVITY*dt;
-  if(player.vy > MAX_FALL_SPEED) player.vy = MAX_FALL_SPEED;
+  player.vy+=GRAVITY*dt;
+  if(player.vy>MAX_FALL_SPEED) player.vy=MAX_FALL_SPEED;
 
-  player.x += player.vx*dt;
-  resolveCollisions("x");
+  player.x+=player.vx*dt; resolveCollisions("x");
+  player.y+=player.vy*dt; player.onGround=false; resolveCollisions("y");
 
-  player.y += player.vy*dt;
-  player.onGround = false;
-  resolveCollisions("y");
+  const centerX=player.x+player.w/2;
+  cameraX=centerX-canvas.width/2;
+  if(cameraX<0) cameraX=0;
+  const maxCam=cols*TILE_SIZE-canvas.width;
+  if(cameraX>maxCam) cameraX=maxCam;
 
-  const centerX = player.x + player.w/2;
-  cameraX = centerX - canvas.width/2;
-  if(cameraX < 0) cameraX = 0;
-  const maxCam = cols*TILE_SIZE - canvas.width;
-  if(cameraX > maxCam) cameraX = maxCam;
+  handleCoins(); handleSpikes(); handleKeyAndDoor();
 
-  handleCoins();
-  handleSpikes();
-  handleKeyAndDoor();
+  if(player.y>canvas.height+400){ lives--; respawn(); }
 
-  if(player.y > canvas.height + 400){
-    lives--;
-    respawn();
-  }
-
-  document.getElementById("score").textContent = score;
-  document.getElementById("lives").textContent = lives;
-  document.getElementById("time").textContent  = Math.max(0,(maxTime-levelTimer)|0);
+  document.getElementById("score").textContent=score;
+  document.getElementById("lives").textContent=lives;
+  document.getElementById("time").textContent=Math.max(0,(maxTime-levelTimer)|0);
 }
 
 function resolveCollisions(axis){
-  const future = {x:player.x,y:player.y,w:player.w,h:player.h};
-  const startCol = Math.floor((player.x-5)/TILE_SIZE);
-  const endCol   = Math.floor((player.x+player.w+5)/TILE_SIZE);
-  const startRow = Math.floor((player.y-5)/TILE_SIZE);
-  const endRow   = Math.floor((player.y+player.h+5)/TILE_SIZE);
+  const future={x:player.x,y:player.y,w:player.w,h:player.h};
+  const startCol=Math.floor((player.x-5)/TILE_SIZE);
+  const endCol  =Math.floor((player.x+player.w+5)/TILE_SIZE);
+  const startRow=Math.floor((player.y-5)/TILE_SIZE);
+  const endRow  =Math.floor((player.y+player.h+5)/TILE_SIZE);
 
   for(let r=startRow;r<=endRow;r++){
     for(let c=startCol;c<=endCol;c++){
       if(r<0||c<0||r>=rows||c>=cols) continue;
-      const type = tiles[r][c];
-      if(type===0 || type===3 || type===5 || type===6 || type===7) continue;
-      const tileRect = {x:c*TILE_SIZE,y:r*TILE_SIZE,w:TILE_SIZE,h:TILE_SIZE};
+      const type=tiles[r][c];
+      if(type===0||type===3||type===5||type===6||type===7) continue;
+      const tileRect={x:c*TILE_SIZE,y:r*TILE_SIZE,w:TILE_SIZE,h:TILE_SIZE};
       if(rectIntersect(future,tileRect)){
         if(axis==="x"){
-          if(player.vx>0) player.x = tileRect.x - player.w;
-          else if(player.vx<0) player.x = tileRect.x + tileRect.w;
-          player.vx = 0;
-          future.x = player.x;
+          if(player.vx>0) player.x=tileRect.x-player.w;
+          else if(player.vx<0) player.x=tileRect.x+tileRect.w;
+          player.vx=0; future.x=player.x;
         }else{
-          if(player.vy>0){
-            player.y = tileRect.y - player.h;
-            player.vy = 0;
-            player.onGround = true;
-          }else if(player.vy<0){
-            player.y = tileRect.y + tileRect.h;
-            player.vy = 0;
-          }
-          future.y = player.y;
+          if(player.vy>0){ player.y=tileRect.y-player.h; player.vy=0; player.onGround=true; }
+          else if(player.vy<0){ player.y=tileRect.y+tileRect.h; player.vy=0; }
+          future.y=player.y;
         }
       }
     }
@@ -338,106 +256,86 @@ function resolveCollisions(axis){
 }
 
 function handleCoins(){
-  const p = {x:player.x,y:player.y,w:player.w,h:player.h};
+  const p={x:player.x,y:player.y,w:player.w,h:player.h};
   for(let r=0;r<rows;r++){
     for(let c=0;cls;c++){
       if(tiles[r][c]===3){
-        const rect = {x:c*TILE_SIZE+12,y:r*TILE_SIZE+12,w:24,h:24};
-        if(rectIntersect(p,rect)){
-          tiles[r][c]=0;
-          score += 10;
-        }
+        const rect={x:c*TILE_SIZE+12,y:r*TILE_SIZE+12,w:24,h:24};
+        if(rectIntersect(p,rect)){ tiles[r][c]=0; score+=10; }
       }
     }
   }
 }
 
 function handleSpikes(){
-  const p = {x:player.x,y:player.y,w:player.w,h:player.h};
+  const p={x:player.x,y:player.y,w:player.w,h:player.h};
   for(let r=0;r<rows;r++){
     for(let c=0;cls;c++){
       if(tiles[r][c]===7){
-        const rect = {x:c*TILE_SIZE,y:r*TILE_SIZE,w:TILE_SIZE,h:TILE_SIZE};
-        if(rectIntersect(p,rect)){
-          lives--;
-          respawn();
-          return;
-        }
+        const rect={x:c*TILE_SIZE,y:r*TILE_SIZE,w:TILE_SIZE,h:TILE_SIZE};
+        if(rectIntersect(p,rect)){ lives--; respawn(); return; }
       }
     }
   }
 }
 
 function handleKeyAndDoor(){
-  const p = {x:player.x,y:player.y,w:player.w,h:player.h};
+  const p={x:player.x,y:player.y,w:player.w,h:player.h};
   for(let r=0;r<rows;r++){
     for(let c=0;cls;c++){
-      const t = tiles[r][c];
-      const x = c*TILE_SIZE;
-      const y = r*TILE_SIZE;
-
+      const t=tiles[r][c], x=c*TILE_SIZE, y=r*TILE_SIZE;
       if(t===5){
-        const rect = {x:x+8,y:y+8,w:32,h:32};
-        if(rectIntersect(p,rect)){
-          tiles[r][c]=0;
-          hasKey = true;
-        }
+        const rect={x:x+8,y:y+8,w:32,h:32};
+        if(rectIntersect(p,rect)){ tiles[r][c]=0; hasKey=true; }
       }
-
       if(t===6 && hasKey){
-        const rect = {x:x,y:y,w:TILE_SIZE,h:TILE_SIZE};
+        const rect={x:x,y:y,w:TILE_SIZE,h:TILE_SIZE};
         if(rectIntersect(p,rect)){
-          let next = currentLevel + 1;
-          if(next >= LEVELS.length) next = 0;
-          loadLevel(next);
-          return;
+          let next=currentLevel+1; if(next>=LEVELS.length) next=0;
+          loadLevel(next); return;
         }
       }
     }
   }
 }
 
-// ===== RESPAWN & AD =====
+// ========== RESPAWN + AD ==========
 function respawn(){
-  if(lives <= 0){
-    startRewardAd();
-  }else{
-    player.x = TILE_SIZE*2;
-    player.y = TILE_SIZE*(rows-4);
-    player.vx = player.vy = 0;
-    cameraX = 0;
-    levelTimer = 0;
+  if(lives<=0) startRewardAd();
+  else{
+    player.x=TILE_SIZE*2;
+    player.y=TILE_SIZE*(rows-4);
+    player.vx=player.vy=0;
+    cameraX=0;
+    levelTimer=0;
   }
 }
 
 function startRewardAd(){
-  adAudio.src = adFile;
-  adModal.style.display = "flex";
-  adAudio.currentTime = 0;
+  adAudio.src=adFile;
+  adModal.style.display="flex";
+  adAudio.currentTime=0;
   adAudio.play().catch(()=>{});
 }
 
-adAudio.onended = () => {
-  lives = 3;
-  // score = 0; // agar revive pe score reset chahiye to uncomment karo
-
-  player.x = TILE_SIZE*2;
-  player.y = TILE_SIZE*(rows-4);
-  player.vx = player.vy = 0;
-  cameraX = 0;
-  levelTimer = 0;
-
-  adModal.style.display = "none";
+adAudio.onended=()=>{
+  lives=3;
+  player.x=TILE_SIZE*2;
+  player.y=TILE_SIZE*(rows-4);
+  player.vx=player.vy=0;
+  cameraX=0;
+  levelTimer=0;
+  adModal.style.display="none";
 };
 
-// ===== DRAW =====
+// ========== DRAW ==========
 function draw(){
-  ctx.fillStyle = "#87CEEB";
+  ctx.fillStyle="#87CEEB";
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  ctx.fillStyle = "#7ec8e3";
+  ctx.fillStyle="#7ec8e3";
   for(let i=-1;i<10;i++){
-    const x = i*200 - (cameraX*0.3)%200;
+    const x=i*200-(cameraX*0.3)%200;
     ctx.beginPath();
     ctx.moveTo(x,canvas.height-200);
     ctx.quadraticCurveTo(x+100,canvas.height-260,x+200,canvas.height-200);
@@ -452,16 +350,14 @@ function draw(){
 
   for(let r=0;r<rows;r++){
     for(let c=0;cls;c++){
-      const t = tiles[r][c];
-      const x = c*TILE_SIZE;
-      const y = r*TILE_SIZE;
-      if(t===1 || t===2){
-        ctx.fillStyle = t===1 ? "#8B4513" : "#a46b27";
+      const t=tiles[r][c], x=c*TILE_SIZE, y=r*TILE_SIZE;
+      if(t===1||t===2){
+        ctx.fillStyle=t===1?"#8B4513":"#a46b27";
         ctx.fillRect(x,y,TILE_SIZE,TILE_SIZE);
-        ctx.fillStyle = "#c08a3a";
+        ctx.fillStyle="#c08a3a";
         ctx.fillRect(x+6,y+6,TILE_SIZE-12,12);
       }else if(t===3){
-        ctx.fillStyle = "#FFD700";
+        ctx.fillStyle="#FFD700";
         ctx.beginPath();
         ctx.arc(x+TILE_SIZE/2,y+TILE_SIZE/2,14,0,Math.PI*2);
         ctx.fill();
@@ -480,10 +376,9 @@ function draw(){
         ctx.fillRect(x+14,y+10,TILE_SIZE-28,TILE_SIZE-18);
       }else if(t===7){
         ctx.fillStyle="#444";
-        const baseY = y+TILE_SIZE;
-        const w = TILE_SIZE/3;
+        const baseY=y+TILE_SIZE, w=TILE_SIZE/3;
         for(let i=0;i<3;i++){
-          const sx = x + i*w;
+          const sx=x+i*w;
           ctx.beginPath();
           ctx.moveTo(sx,baseY);
           ctx.lineTo(sx+w/2,baseY-20);
@@ -495,39 +390,32 @@ function draw(){
     }
   }
 
-  const px = player.x;
-  const py = player.y;
-
-  ctx.fillStyle = "rgba(0,0,0,0.3)";
+  const px=player.x, py=player.y;
+  ctx.fillStyle="rgba(0,0,0,0.3)";
   ctx.beginPath();
-  ctx.ellipse(px+player.w/2, py+player.h, 18, 6, 0, 0, Math.PI*2);
+  ctx.ellipse(px+player.w/2,py+player.h,18,6,0,0,Math.PI*2);
   ctx.fill();
 
-  ctx.fillStyle = "#111111";
-  ctx.fillRect(px, py, player.w, player.h-12);
-
-  ctx.fillStyle = "#4444ff";
-  ctx.fillRect(px, py+player.h-26, player.w, 6);
-
-  ctx.fillStyle = "#111111";
-  ctx.fillRect(px, py-14, player.w, 14);
-
-  ctx.fillStyle = "#ff3333";
-  ctx.fillRect(px, py-18, player.w, 4);
-  ctx.fillRect(px+player.w-6, py-18, 8, 10);
-
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(px+6, py-11, 4, 3);
-  ctx.fillRect(px+player.w-10, py-11, 4, 3);
-
-  ctx.fillStyle = "#000000";
-  ctx.fillRect(px,            py+player.h-16, player.w/2, 16);
-  ctx.fillRect(px+player.w/2, py+player.h-16, player.w/2, 16);
+  ctx.fillStyle="#111111";
+  ctx.fillRect(px,py,player.w,player.h-12);
+  ctx.fillStyle="#4444ff";
+  ctx.fillRect(px,py+player.h-26,player.w,6);
+  ctx.fillStyle="#111111";
+  ctx.fillRect(px,py-14,player.w,14);
+  ctx.fillStyle="#ff3333";
+  ctx.fillRect(px,py-18,player.w,4);
+  ctx.fillRect(px+player.w-6,py-18,8,10);
+  ctx.fillStyle="#ffffff";
+  ctx.fillRect(px+6,py-11,4,3);
+  ctx.fillRect(px+player.w-10,py-11,4,3);
+  ctx.fillStyle="#000000";
+  ctx.fillRect(px,py+player.h-16,player.w/2,16);
+  ctx.fillRect(px+player.w/2,py+player.h-16,player.w/2,16);
 
   ctx.restore();
 }
 
-// start game
+// start
 loadLevel(0);
 loop();
 </script>
